@@ -15,8 +15,8 @@ gtest_all.o:
 
 # TODO use CMAKE
 # https://github.com/google/googletest/tree/master/googletest#using-cmake
-test_main: gtest_all.o i8080.cpp tests/test_main.cpp
-	g++ -std=c++1z -isystem ${GTEST_DIR}/include -I. -pthread tests/test_main.cpp i8080.cpp libgtest.a \
+test_main: gtest_all.o i8080.cpp tests/test_main.cpp tests/test_flags.cpp
+	g++ -std=c++1z -isystem ${GTEST_DIR}/include -I. -pthread tests/test_main.cpp tests/test_flags.cpp i8080.cpp libgtest.a \
     -o test_main
 
 test: test_main
