@@ -24,9 +24,13 @@ Register pair PSW (Program Status Word) refers to register A (7) and a special b
 #define REG_L	0x5
 #define REG_M	0x6
 #define REG_A	0x7
+#define NUM_REGS 8
 
 class i8080_state {
 public:
+	i8080_state()
+	:regs{0}
+	{}
 	// Flags
 	bool carry;
 	bool aux_carry;
@@ -35,7 +39,7 @@ public:
 	bool parity;
 
 	// Registers
-	uint8_t regs[8];
+	uint8_t regs[NUM_REGS];
 
 	// Special Registers
 	uint16_t PC;
@@ -43,14 +47,37 @@ public:
 
 };
 
-// case INR_B:
-// case INR_C:
-// case INR_D:
-// case INR_E:
-// case INR_H:
-// case INR_L:
-// case INR_M:
-// case INR_A:
+// #define FLAG_CARRY		0x01
+// #define FLAG_AUX_CARRY	0x02
+// #define FLAG_SIGN		0x04
+// #define FLAG_ZERO		0x08
+// #define FLAG_PARITY		0x10
+
+inline void affect_carry_flag(uint8_t a_value, uint8_t b_value, i8080_state& state){
+	uint16_t test = a_value + b_value;
+	state.carry = test & 0x100;
+}
+
+inline void affect_aux_carry_flag(uint8_t a_value, uint8_t b_value, i8080_state& state){
+	uint8_t test = (a_value & 0xf) + (b_value & 0xf);
+	state.aux_carry = test & 0x10;
+}
+
+inline void affect_sign_flag(uint8_t value, i8080_state& state){
+    state.sign = value & 0x80;
+}
+
+inline void affect_zero_flag(uint8_t value, i8080_state& state){
+    state.zero = value == 0;
+}
+
+inline void affect_parity_flag(uint8_t value, i8080_state& state){
+	int accum = 0;
+	for(int i = 0; i < 8; i++){
+		accum += (value >> i) & 1;
+	}
+	state.parity = !(accum % 2);
+}
 
 int run()
 {
@@ -68,21 +95,42 @@ int run()
 	memcpy(memory.get()+code, program, PROG_SIZE);
 	state.PC = code;
 
+	uint8_t opcode;
+   	uint8_t reg_id;
+	uint8_t old_value;
+	uint8_t new_value;
+	uint8_t flags;
+
 	// Run
     while(enable)
     {
-    	uint8_t opcode = memory[state.PC];
+    	opcode = memory[state.PC];
     	printf("opcode %x\n", opcode);
 
     	switch(opcode){
+
+    	// Increment Register	
 		case INR_B:
-    		// B <- B+1
-    		state.regs[REG_B] = state.regs[REG_B] + 1;
+		case INR_C:
+		case INR_D:
+		case INR_E:
+		case INR_H:
+		case INR_L:
+		case INR_M:
+		case INR_A:
+    		reg_id = (opcode & 0x38) >> 3;
 
-    		printf("INR_B: B = %x\n", state.regs[REG_B]);
+    		old_value = state.regs[reg_id];
+    		new_value = old_value + 1;
+    		state.regs[reg_id] = new_value;
+
+    		affect_zero_flag(new_value, state);
+    		affect_sign_flag(new_value, state);
+    		affect_parity_flag(new_value, state);
+    		affect_aux_carry_flag(old_value, 1, state);
+
+    		printf("INR: reg %d = %x\n", reg_id, state.regs[reg_id]);
     		break;
-
-		// 	break;
 
     	case HLT:
     		enable = false;

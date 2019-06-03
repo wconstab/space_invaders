@@ -1,0 +1,5 @@
+.venv
+*.o
+*.a
+main
+test_main
