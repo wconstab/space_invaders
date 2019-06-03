@@ -1,7 +1,7 @@
 #include <iostream>
 using namespace std;
 
-int run();
+#include i8080.hpp
 
 int main() 
 {

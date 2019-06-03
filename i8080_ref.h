@@ -1,3 +1,5 @@
+#ifndef _I8080_REF_HPP_
+#define _I8080_REF_HPP_
 
 #define INST_TBL_SIZE 256
 #define NOP					0x00
@@ -496,3 +498,5 @@ struct opcode_info_desc opcode_info[INST_TBL_SIZE] = {
     {2, (char *)"A - data"},
     {1, (char *)"CALL $38"},
 };
+
+#endif
